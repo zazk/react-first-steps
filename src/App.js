@@ -20,19 +20,19 @@ let CSSnotesBoxTitle = "mdl-card mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-c
 
 
 
-
-// A Sticky Note custom element that extends HTMLElement.
-class StickyNote extends HTMLElement{
-
-    // Fires when an instance of the element is created.
-    createdCallback() {
-        this.classList.add( ...StickyNote.CLASSES);
-        this.innerHTML = StickyNote.TEMPLATE; 
-        this.messageElement = this.querySelector('.message');
-        this.dateElement = this.querySelector('.date');
-        this.deleteButton = this.querySelector('.delete');
-        this.deleteButton.addEventListener('click', () => this.deleteNote() );
+class StickyNote extends Component{
+    constructor(){
+      super();
+      let CLASSES = ['mdl-cell--4-col-desktop', 'mdl-card__supporting-text', 
+        'mdl-cell--12-col', 'mdl-shadow--2dp', 'mdl-cell--4-col-tablet', 
+        'mdl-card', 'mdl-cell', 'sticky-note'];
+      this.classList.add( ...CLASSES);
+      this.messageElement = this.querySelector('.message');
+      this.dateElement = this.querySelector('.date');
+      this.deleteButton = this.querySelector('.delete');
+      this.deleteButton.addEventListener('click', () => this.deleteNote() );
     }
+
 
     // Fires when an attribute of the element is added/deleted/modified.
     attributeChangedCallback(attributeName) {
@@ -62,21 +62,18 @@ class StickyNote extends HTMLElement{
         localStorage.removeItem(this.id);
         this.parentNode.removeChild(this);
     }
+    render(){
+      return(
+        <div>
+          <div class="message"></div>
+          <div class="date"></div>
+          <button class="delete mdl-button mdl-js-button mdl-js-ripple-effect">
+              Delete
+          </button>
+        </div>
+      )
+    }
 }
-
-
-// Initial content of the element.
-StickyNote.TEMPLATE =`
-<div class="message"></div>
-<div class="date"></div>
-<button class="delete mdl-button mdl-js-button mdl-js-ripple-effect">
-    Delete
-</button>`;
-
-// StickyNote elements top level style classes.
-StickyNote.CLASSES = ['mdl-cell--4-col-desktop', 'mdl-card__supporting-text', 'mdl-cell--12-col',
-'mdl-shadow--2dp', 'mdl-cell--4-col-tablet', 'mdl-card', 'mdl-cell', 'sticky-note'];
-
 
 class App extends Component {
 
@@ -122,7 +119,7 @@ class App extends Component {
         if (!message) {
             return note.deleteNote();
         }
-        note.setMessage(message);
+        //note.setMessage(message);
     }
 
     // Saves a new sticky note on localStorage.
