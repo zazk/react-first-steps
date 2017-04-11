@@ -18,44 +18,18 @@ let CSSnotesBoxLabel = "mdl-textfield__label" ;
 let CSSnotesButton = "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--color"; 
 let CSSnotesBoxTitle = "mdl-card mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--12-col-desktop"; 
 
-
+let CSSsticky = 'mdl-cell--4-col-desktop mdl-card__supporting-text mdl-cell--12-col mdl-shadow--2dp mdl-cell--4-col-tablet mdl-card mdl-cell sticky-note';
 
 class StickyNote extends Component{
 
 
     componentDidMount (){
-
-      let CLASSES = 'mdl-cell--4-col-desktop mdl-card__supporting-text'+ 
-        'mdl-cell--12-col mdl-shadow--2dp mdl-cell--4-col-tablet'+
-        'mdl-card mdl-cell sticky-note';
-      this.className = CLASSES;
-      this.messageElement = this.querySelector('.message');
-      this.dateElement = this.querySelector('.date');
-      this.deleteButton = this.querySelector('.delete');
+      this.messageElement = this.refs.message;
+      this.dateElement = this.refs.date;
+      this.deleteButton = this.refs.delete;
       this.deleteButton.addEventListener('click', () => this.deleteNote() );
     }
-    // Fires when an attribute of the element is added/deleted/modified.
-    attributeChangedCallback(attributeName) {
-        // We display/update the created date message if the id changes.
-        if (attributeName === 'id') {
-            let date;
-            if (this.id) {
-                date = new Date( parseInt(this.id,10) );
-            } else {
-                date = new Date();
-            }
-            let dateFormatOptions = {day:'numeric',month:'short'};
-            let shortDate= new Intl.DateTimeFormat('en-US',dateFormatOptions).format(date);
-            this.dateElement.textContent = `Created on  ${shortDate}`;
-        }
-    }
 
-    // Sets the message of the note.
-    setMessage(message) {
-        this.querySelector('.message').textContent = message;
-        // Replace all line breaks by <br>.
-        this.querySelector('.message').innerHTML = this.querySelector('.message').innerHTML.replace(/\n/g, '<br>');
-    }
 
     // Deletes the note by removing the element from the DOM and the data from localStorage.
     deleteNote() {
@@ -64,10 +38,10 @@ class StickyNote extends Component{
     }
     render(){
       return(
-        <div>
-          <div className="message"></div>
-          <div className="date"></div>
-          <button className="delete mdl-button mdl-js-button mdl-js-ripple-effect">
+        <div className={CSSsticky}>
+          <div className="message" ref="message">{this.props.message}</div>
+          <div className="date" ref="date">{this.props.date}</div>
+          <button className="delete mdl-button mdl-js-button mdl-js-ripple-effect" ref="delete">
               Delete
           </button>
         </div>
@@ -97,30 +71,39 @@ class App extends Component {
 
     // Resets the given MaterialTextField.
     resetMaterialTextfield(element) {
-      console.log("Gey Reset");
+        console.log("Gay Reset");
         element.value = '';
         element.parentNode.MaterialTextfield.boundUpdateClassesHandler();
         element.blur(); 
     }
+    // Fires when an attribute of the element is added/deleted/modified.
+    parseDateNote(key) {
+        // We display/update the created date message if the id changes.
+        let date;
+        if (key) {
+            date = new Date( parseInt(key,10) );
+        } else {
+            date = new Date();
+        }
+        let dateFormatOptions = {day:'numeric',month:'short'};
+        let shortDate= new Intl.DateTimeFormat('en-US',dateFormatOptions).format(date);
+        return `Created on  ${shortDate}`;
+    }
+ 
 
     // Creates/updates/deletes a note in the UI.
     displayNote (key, message) {
         let note = document.getElementById(key); 
+        let date = this.parseDateNote(key); 
+        message = message.replace(/\n/g, '<br>'); 
         // If no element with the given key exists we create a new note.
         if (!note) {
-            note = <StickyNote id={key} key={key}/>;
-            let title = document.getElementById('notes-section-title'); 
-            let cont = document.getElementById('notes-container')
-            console.log("My component",note);
-            //cont.insertBefore(note, title.nextSibling);
+            note = <StickyNote id={key} key={key} message={message} date={date}/>; 
         }
         // If the message is null we delete the note.
         if (!message) {
             return note.deleteNote();
-        }
-        console.log("My Note",note);
-
-        //note.setMessage(message);
+        } 
         return note;
     }
 
@@ -170,7 +153,7 @@ class App extends Component {
             </header> 
             <main className={CSSmainBox}>
               <div id="notes-container" className={CSSnotesBox}>
-                {notes}
+                
                 <div className={CSSnotesCell}>
                   <div className={CSSnotesTitle}>
                     <h2 className={CSSnotesCard}>Add new note</h2>
@@ -190,6 +173,7 @@ class App extends Component {
                   <div className={CSSnotesTitle}>
                     <h2 className={CSSnotesCard}>Your sticky notes</h2>
                   </div>
+                  {notes}
                 </div>
               </div>
             </main>
