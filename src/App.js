@@ -4,7 +4,8 @@ import * as Klass from './App.constants.js';
 
 class StickyNote extends Component{
     constructor(props) {
-        super(props);  
+        super(props);
+        this.deleteNote= this.deleteNote.bind(this);
     }
     deleteNote (){
       this.props.clickHandler(this.props.index);
@@ -15,7 +16,7 @@ class StickyNote extends Component{
           <div className="message" ref="message">{this.props.message}</div>
           <div className="date" ref="date">{this.props.date}</div>
           <button className={Klass.CSSstickyDelete} ref="delete" 
-            onClick={this.deleteNote.bind(this)} >
+            onClick={this.deleteNote} >
               Delete
           </button>
         </div>
@@ -26,6 +27,8 @@ class StickyNote extends Component{
 class App extends Component {
     constructor(){ 
       super();
+
+      this.deleteNote= this.deleteNote.bind(this);
       this.state = {
         notes: [] 
       };
@@ -75,9 +78,12 @@ class App extends Component {
 
     // Deletes the note by removing the element from the DOM and the data from localStorage.
     deleteNote (index){ 
-      console.log("Delete Note:" , index,this.state );
+      let notes = this.state.notes;
+            console.log("Delete Note:" , index , notes );
 
-      this.setState({ notes: this.state.notes.splice(index,1) });
+      notes.splice(index,1);
+      this.setState({ notes: notes });
+      //localStorage.removeItem(this.id);
     }
  
     // Saves a new sticky note on localStorage.
