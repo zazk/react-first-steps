@@ -3,22 +3,19 @@ import './App.css';
 import * as Klass from './App.constants.js';
 
 class StickyNote extends Component{
-
-    componentDidMount (){ 
-      this.refs.delete.addEventListener('click', () => this.deleteNote() );
+    constructor(props) {
+        super(props);  
     }
-
-    // Deletes the note by removing the element from the DOM and the data from localStorage.
-    deleteNote() {
-        localStorage.removeItem(this.id);
-        this.parentNode.removeChild(this);
+    deleteNote (){
+      this.props.clickHandler(this.props.index);
     }
     render(){
       return(
         <div className={Klass.CSSsticky}>
           <div className="message" ref="message">{this.props.message}</div>
           <div className="date" ref="date">{this.props.date}</div>
-          <button className={Klass.CSSstickyDelete} ref="delete">
+          <button className={Klass.CSSstickyDelete} ref="delete" 
+            onClick={this.deleteNote.bind(this)} >
               Delete
           </button>
         </div>
@@ -27,16 +24,19 @@ class StickyNote extends Component{
 }
 
 class App extends Component {
-    
-    componentDidMount(){
-        // Loads all the notes.
-        for (let key in localStorage) {
-            this.displayNote(key, localStorage[key]);
-        }
+    constructor(){ 
+      super();
+      this.state = {
+        notes: [] 
+      };
+      let index = 0;
+      for (let key in localStorage) {
+          this.state.notes.push( this.displayNote(key, localStorage[key], index++ )  );
+      }
         // Listen for updates to notes from other windows.
-        window.addEventListener('storage', e=> this.displayNote(e.key, e.newValue) );
+      window.addEventListener('storage', e=> this.displayNote(e.key, e.newValue) );
     }
-
+    
     // Resets the given MaterialTextField.
     resetMaterialTextfield(element) {
         element.value = '';
@@ -58,13 +58,13 @@ class App extends Component {
     }
  
     // Creates/updates/deletes a note in the UI.
-    displayNote (key, message) {
+    displayNote (key, message, index) {
         let note = document.getElementById(key); 
         let date = this.parseDateNote(key); 
         message = message.replace(/\n/g, '<br>'); 
         // If no element with the given key exists we create a new note.
         if (!note) {
-            note = <StickyNote id={key} key={key} message={message} date={date}/>; 
+            note = <StickyNote id={key} key={key} index={index} message={message} date={date} clickHandler={this.deleteNote} />; 
         }
         // If the message is null we delete the note.
         if (!message) {
@@ -73,18 +73,26 @@ class App extends Component {
         return note;
     }
 
+    // Deletes the note by removing the element from the DOM and the data from localStorage.
+    deleteNote (index){ 
+      console.log("Delete Note:" , index,this.state );
+
+      this.setState({ notes: this.state.notes.splice(index,1) });
+    }
+ 
     // Saves a new sticky note on localStorage.
     saveNote() {                        
         console.log("Save Note ");
         let input = document.getElementById('message');
 
         if (input.value) {
-
             let key = Date.now().toString();
             localStorage.setItem(key, input.value );
-                
-            console.log("Save on Local Storage ",localStorage);
-            this.displayNote(key, input.value );
+
+            let notes = this.state.notes;
+            notes.push( this.displayNote(key, input.value , notes.length - 1 )  );
+
+            this.setState({ notes: notes });
             this.resetMaterialTextfield( input );
             this.toggleButton(); 
         }
@@ -104,10 +112,7 @@ class App extends Component {
 
     render() {
       // Loads all the notes.
-      let notes = [];
-      for (let key in localStorage) {
-          notes.push( this.displayNote(key, localStorage[key]) );
-      }
+
       return (
         <div className={Klass.CSSlayout}>
             <header className={Klass.CSSheader}>
@@ -139,8 +144,8 @@ class App extends Component {
                   <div className={Klass.CSSnotesTitle}>
                     <h2 className={Klass.CSSnotesCard}>Your sticky notes</h2>
                   </div>
-                  {notes}
                 </div>
+                  {this.state.notes}
               </div>
             </main>
 
